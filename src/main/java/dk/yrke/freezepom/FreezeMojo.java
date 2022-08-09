@@ -1,4 +1,4 @@
-package dk.yrke;
+package dk.yrke.freezepom;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -9,7 +9,14 @@ import org.apache.maven.plugins.dependency.fromDependencies.AbstractDependencyFi
 import org.apache.maven.plugins.dependency.utils.DependencyStatusSets;
 import org.apache.maven.plugins.dependency.utils.filters.ResolveFileFilter;
 import org.apache.maven.plugins.dependency.utils.markers.SourcesFileMarkerHandler;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.artifact.filter.collection.ArtifactsFilter;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 
 /*
@@ -30,6 +37,10 @@ import org.apache.maven.shared.artifact.filter.collection.ArtifactsFilter;
 @Mojo( name = "freeze", aggregator = true, requiresDependencyResolution = ResolutionScope.TEST, threadSafe = true )
 class FreezeMojo extends AbstractDependencyFilterMojo {
 
+    @Parameter(defaultValue = "${project}", readonly = true, required = true)
+    // XXX name project will conflict with AbstractDependencyFilterMojo
+    private MavenProject project2;
+
     @Parameter( property = "includeParents", defaultValue = "false" )
     boolean includeParents;
 
@@ -41,7 +52,22 @@ class FreezeMojo extends AbstractDependencyFilterMojo {
 
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
+
+        var projectDir = project2.getBasedir();
+
         DependencyStatusSets results = this.getDependencySets(false, includeParents);
-        results.getResolvedDependencies().stream().sorted().forEach(it -> System.out.println(it));
+
+        var resolvedDepends = results.getResolvedDependencies();
+
+        if (resolvedDepends != null && !resolvedDepends.isEmpty()) {
+            try (PrintStream s = new PrintStream(new File(projectDir, Settings.FREEZE_FILE_NAME), StandardCharsets.UTF_8)) {
+                s.print(resolvedDepends.stream().map(it -> it.getId()).sorted().collect(Collectors.joining("\n")));
+            } catch (IOException e) {
+                throw new RuntimeException("Failure writing freeze file", e);
+            }
+        } else {
+            throw new RuntimeException("Not found any dependencies");
+        }
+
     }
 }
