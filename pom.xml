@@ -3,7 +3,7 @@
   <groupId>dk.yrke</groupId>
   <artifactId>freeze-pom</artifactId>
   <packaging>maven-plugin</packaging>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
   <name>freeze-pom Maven Mojo</name>
   <url>http://maven.apache.org</url>
 
@@ -95,5 +95,12 @@
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
+
+  <distributionManagement>
+    <repository>
+      <id>Helseboka_Feed</id>
+      <url>https://pkgs.dev.azure.com/helseapps/Helseboka/_packaging/Helseboka_Feed/maven/v1</url>
+    </repository>
+  </distributionManagement>
 
 </project>
