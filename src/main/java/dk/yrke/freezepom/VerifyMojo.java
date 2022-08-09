@@ -83,11 +83,14 @@ class VerifyMojo extends AbstractDependencyFilterMojo {
             }
 
             var compare = StringUtils.compare(dependsStr, freezeFileStr);
+            /*
+            For debug
             System.out.println("=========================");
             System.out.println(dependsStr);
             System.out.println("=========================");
             System.out.println(freezeFileStr);
             System.out.println("=========================");
+             */
             if (compare != 0) {
                 throw new RuntimeException("Differences between imports and freeze file");
             }
